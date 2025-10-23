@@ -1,20 +1,54 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
+import { Text, View, ActivityIndicator } from 'react-native';
 
-export default function App() {
+import HomeScreen from './screens/homeScreen';
+import LeaderBoard from './screens/leaderBoard';
+import ProfileScreen from './screens/profileScreen';
+import TrackingScreen from './screens/trackingScreen';
+import WelcomeScreen from './screens/welcomeScreen';
+
+const Stack = createNativeStackNavigator();
+
+const LoadingScreen = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View style={{ flex: 1, justifyContente: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" />
     </View>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  //Parte per il controllo nuovi utenti
+  const [initialRoute, setInitialRoute] = useState(null);
+
+  useEffect(() => {
+    const checkFirstTime = async () => {
+      const firstTime = await AsyncStorage.getItem('firstTime');
+      if(firstTime === null) {
+        await AsyncStorage.setItem('firstTime', 'no');
+        setInitialRoute('welcomeScreen');
+      } else {
+        setInitialRoute('homeScreen');
+      }
+    }; 
+
+    checkFirstTime();
+  }, []);
+
+  if (!initialRoute) return <LoadingScreen />;
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName={initialRoute}>
+        <Stack.Screen name="welcomeScreen" component={WelcomeScreen}/>
+        <Stack.Screen name="homeScreen" component={HomeScreen}/>
+        <Stack.Screen name="leaderBoard" component={LeaderBoard}/>
+        <Stack.Screen name="profileScreen" component={ProfileScreen}/>
+        <Stack.Screen name="trackingScreen" component={TrackingScreen}/>
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
