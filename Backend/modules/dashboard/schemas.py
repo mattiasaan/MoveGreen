@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from datetime import datetime
 
 class DashboardResponse(BaseModel):
   total_distance_km: float
