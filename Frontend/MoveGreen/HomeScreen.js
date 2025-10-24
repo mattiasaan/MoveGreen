@@ -4,8 +4,13 @@ import { View, Text, StyleSheet } from 'react-native'; // Button rimosso
 function HomeScreen() { // navigation rimosso dai props
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Home</Text>
-      <Text>Usa la barra di navigazione inferiore per navigare tra le sezioni principali.</Text>
+      <Text style={styles.title}>MoveGreen</Text>
+      <Text>Buongiorno, User!!!</Text>
+
+      <View style={styles.box}>
+        <Text>Chilometri sostenibili</Text>
+        <Text style={{ fontSize: 24, fontStyle: 'bold' }}>---</Text>
+      </View>
     </View>
   );
 }
