@@ -7,8 +7,8 @@ function WelcomeScreen({ navigation }) {
       <Text style={styles.title}>Benvenuto!</Text>
       <Text style={styles.text}>La tua app è pronta.</Text>
       <Button
-        title="Inizia (Vai alla Home)"
-        onPress={() => navigation.navigate('Home')}
+        title="Inizia (Vai alle Schede Principali)"
+        onPress={() => navigation.navigate('Main')} 
       />
     </View>
   );

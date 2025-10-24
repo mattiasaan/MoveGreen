@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// Importa tutti i componenti delle schermate
+
 import WelcomeScreen from './WelcomeScreen';
 import HomeScreen from './HomeScreen';
 import TrackingScreen from './TrackingScreen';
@@ -10,45 +11,61 @@ import LeaderBoardScreen from './LeaderBoardScreen';
 import ProfileScreen from './ProfileScreen';
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function MainTabs() {
+  return (
+    <Tab.Navigator
+      initialRouteName="HomeTab" 
+      screenOptions={{
+        headerShown: false, 
+        tabBarActiveTintColor: '#4CAF50',
+        tabBarInactiveTintColor: 'gray',
+      }}
+    >
+      <Tab.Screen 
+        name="HomeTab"
+        component={HomeScreen} 
+        options={{ 
+          title: 'Dashboard',
+          tabBarLabel: 'Home',
+        }}
+      />
+      <Tab.Screen 
+        name="Tracking" 
+        component={TrackingScreen} 
+        options={{ title: 'Traccia Attività' }}
+      />
+      <Tab.Screen 
+        name="LeaderBoard" 
+        component={LeaderBoardScreen} 
+        options={{ title: 'Classifica' }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileScreen} 
+        options={{ title: 'Profilo' }}
+      />
+    </Tab.Navigator>
+  );
+}
 
 function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        initialRouteName="Welcome" 
-        screenOptions={{
-          headerStyle: { backgroundColor: '#4CAF50' },
-          headerTintColor: '#fff',
-        }}
+        initialRouteName="Welcome"
+        screenOptions={{ headerShown: false }} 
       >
+
         <Stack.Screen 
           name="Welcome" 
-          component={WelcomeScreen} 
-          options={{ headerShown: false }}
+          component={WelcomeScreen}
         />
         
         <Stack.Screen 
-          name="Home" 
-          component={HomeScreen} 
-          options={{ title: 'Dashboard', headerBackVisible: false }}
-        />
-        
-        <Stack.Screen 
-          name="Tracking" 
-          component={TrackingScreen} 
-          options={{ title: 'Traccia Attività' }}
-        />
-        
-        <Stack.Screen 
-          name="LeaderBoard" 
-          component={LeaderBoardScreen} 
-          options={{ title: 'Classifica' }}
-        />
-        
-        <Stack.Screen 
-          name="Profile" 
-          component={ProfileScreen} 
-          options={{ title: 'Il Mio Profilo' }}
+          name="Main" 
+          component={MainTabs} 
         />
       </Stack.Navigator>
     </NavigationContainer>

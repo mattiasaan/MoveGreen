@@ -8,7 +8,7 @@ function ProfileScreen({ navigation }) {
       <Text style={styles.text}>Visualizza e modifica le tue informazioni personali.</Text>
       <Button 
         title="Torna alla Home" 
-        onPress={() => navigation.navigate('Home')} 
+        onPress={() => navigation.navigate('HomeTab')} 
       />
     </View>
   );

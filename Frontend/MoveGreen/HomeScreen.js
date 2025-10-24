@@ -1,24 +1,11 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native'; // Button rimosso
 
-function HomeScreen({ navigation }) {
+function HomeScreen() { // navigation rimosso dai props
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Home</Text>
-      <View style={styles.buttonGroup}>
-        <Button 
-          title="Vai al Tracking" 
-          onPress={() => navigation.navigate('Tracking')} 
-        />
-        <Button 
-          title="Classifica" 
-          onPress={() => navigation.navigate('LeaderBoard')} 
-        />
-        <Button 
-          title="Profilo Utente" 
-          onPress={() => navigation.navigate('Profile')} 
-        />
-      </View>
+      <Text>Usa la barra di navigazione inferiore per navigare tra le sezioni principali.</Text>
     </View>
   );
 }
@@ -34,10 +21,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 40,
-  },
-  buttonGroup: {
-    width: '80%',
-    gap: 15,
   },
 });
 
