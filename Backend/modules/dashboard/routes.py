@@ -6,28 +6,32 @@ from .schemas import DashboardResponse, DashboardUpdate
 
 router = APIRouter()
 
-@router.get("/{user_id}/dashboard", response_model=DashboardResponse)
+@router.get("/{user_id}", response_model=DashboardResponse)
 def get_dashboard(user_id: int, db: Session = Depends(get_db)):
   dashboard = db.query(Dashboard).filter(Dashboard.user_id == user_id).first()
   if not dashboard:
     raise HTTPException(status_code=404, detail="Dashboard not found")
   return dashboard
 
-@router.put("/{user_id}/dashboard", response_model=DashboardResponse)
+@router.put("/{user_id}", response_model=DashboardResponse)
 def update_dashboard(user_id: int, update: DashboardUpdate, db: Session = Depends(get_db)):
   dashboard = db.query(Dashboard).filter(Dashboard.user_id == user_id).first()
+
   if not dashboard:
-    dashboard = Dashboard(user_id=user_id)
+    dashboard = Dashboard(
+      user_id=user_id,
+      total_distance_km=update.total_distance_km or 0.0,
+      total_co2_saved=update.total_co2_saved or 0.0,
+      total_points=update.total_points or 0
+    )
     db.add(dashboard)
-
-  if update.total_distance_km is not None:
-    dashboard.total_distance_km += update.total_distance_km
-
-  if update.total_co2_saved is not None:
-    dashboard.total_co2_saved += update.total_co2_saved
-    
-  if update.total_points is not None:
-    dashboard.total_points += update.total_points
+  else:
+    if update.total_distance_km is not None:
+      dashboard.total_distance_km += update.total_distance_km
+    if update.total_co2_saved is not None:
+      dashboard.total_co2_saved += update.total_co2_saved
+    if update.total_points is not None:
+      dashboard.total_points += update.total_points
 
   db.commit()
   db.refresh(dashboard)

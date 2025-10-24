@@ -1,13 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions, StatusBar } from 'react-native';
 
 export default function HomeScreen() {
   const { width, height } = useWindowDimensions();
 
+  const userId = 1;
+
+  const [data, setData] = useState({
+    km_sostenibili: '---',
+    co2_risparmiata: '---',
+    punti_totali: '---',
+  });
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+  try {
+    const res = await fetch(`http://192.168.1.5:8001/dashboard/${userId}`); //lan 
+    const json = await res.json();
+
+    console.log("Dati ricevuti:", json); // Debug
+
+    setData({
+      km_sostenibili: json.total_distance_km ?? '---',
+      co2_risparmiata: json.total_co2_saved ?? '---',
+      punti_totali: json.total_points ?? '---',
+    });
+
+  } catch (error) {
+    console.log("Errore nel fetch:", error);
+  }
+};
+
   const widgets = [
-    { title: 'Chilometri sostenibili', value: '---' },
-    { title: 'CO₂ risparmiata', value: '---' },
-    { title: 'Punti totali', value: '---' },
+    { title: 'Chilometri sostenibili', value: data.km_sostenibili },
+    { title: 'CO₂ risparmiata', value: data.co2_risparmiata },
+    { title: 'Punti totali', value: data.punti_totali },
     { title: 'Missioni completate', value: '---' },
     { title: 'Missioni extra', value: '---' },
     { title: 'Statistiche bonus', value: '---' },
