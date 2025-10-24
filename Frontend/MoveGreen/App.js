@@ -1,54 +1,58 @@
+import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
-import { Text, View, ActivityIndicator } from 'react-native';
 
-import HomeScreen from './screens/homeScreen';
-import LeaderBoard from './screens/leaderBoard';
-import ProfileScreen from './screens/profileScreen';
-import TrackingScreen from './screens/trackingScreen';
-import WelcomeScreen from './screens/welcomeScreen';
+// Importa tutti i componenti delle schermate
+import WelcomeScreen from './WelcomeScreen';
+import HomeScreen from './HomeScreen';
+import TrackingScreen from './TrackingScreen';
+import LeaderBoardScreen from './LeaderBoardScreen';
+import ProfileScreen from './ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
-const LoadingScreen = () => {
-  return (
-    <View style={{ flex: 1, justifyContente: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" />
-    </View>
-  );
-};
-
-export default function App() {
-  //Parte per il controllo nuovi utenti
-  const [initialRoute, setInitialRoute] = useState(null);
-
-  useEffect(() => {
-    const checkFirstTime = async () => {
-      const firstTime = await AsyncStorage.getItem('firstTime');
-      if(firstTime === null) {
-        await AsyncStorage.setItem('firstTime', 'no');
-        setInitialRoute('welcomeScreen');
-      } else {
-        setInitialRoute('homeScreen');
-      }
-    }; 
-
-    checkFirstTime();
-  }, []);
-
-  if (!initialRoute) return <LoadingScreen />;
-
+function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={initialRoute}>
-        <Stack.Screen name="welcomeScreen" component={WelcomeScreen}/>
-        <Stack.Screen name="homeScreen" component={HomeScreen}/>
-        <Stack.Screen name="leaderBoard" component={LeaderBoard}/>
-        <Stack.Screen name="profileScreen" component={ProfileScreen}/>
-        <Stack.Screen name="trackingScreen" component={TrackingScreen}/>
+      <Stack.Navigator 
+        initialRouteName="Welcome" 
+        screenOptions={{
+          headerStyle: { backgroundColor: '#4CAF50' },
+          headerTintColor: '#fff',
+        }}
+      >
+        <Stack.Screen 
+          name="Welcome" 
+          component={WelcomeScreen} 
+          options={{ headerShown: false }}
+        />
+        
+        <Stack.Screen 
+          name="Home" 
+          component={HomeScreen} 
+          options={{ title: 'Dashboard', headerBackVisible: false }}
+        />
+        
+        <Stack.Screen 
+          name="Tracking" 
+          component={TrackingScreen} 
+          options={{ title: 'Traccia Attività' }}
+        />
+        
+        <Stack.Screen 
+          name="LeaderBoard" 
+          component={LeaderBoardScreen} 
+          options={{ title: 'Classifica' }}
+        />
+        
+        <Stack.Screen 
+          name="Profile" 
+          component={ProfileScreen} 
+          options={{ title: 'Il Mio Profilo' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
+export default App;
