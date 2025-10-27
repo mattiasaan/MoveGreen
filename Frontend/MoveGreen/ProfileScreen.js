@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 function ProfileScreen({ navigation }) {
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [userQuartiere, setUserQuartiere] = useState('');
   const [userId, setUserId] = useState(null);
 
   const API_URL = "http://192.168.1.5:8001/users";
@@ -13,6 +14,7 @@ function ProfileScreen({ navigation }) {
     try {
       const name = await AsyncStorage.getItem("userName");
       const email = await AsyncStorage.getItem("userEmail");
+      const quartiere = await AsyncStorage.getItem("userQuartiere");
       const id = await AsyncStorage.getItem("userId");
 
       if (name) setUserName(name);
@@ -82,6 +84,8 @@ function ProfileScreen({ navigation }) {
 
         <Text style={[styles.infoTitle, { marginTop: 10 }]}>Email</Text>
         <Text style={styles.infoText}>{userEmail || "Non disponibile"}</Text>
+        <Text style={[styles.infoTitle, { marginTop: 10 }]}>Quartiere</Text>
+        <Text style={styles.infoText}>{userQuartiere || "Non disponibile"}</Text>
       </View>
 
       <TouchableOpacity

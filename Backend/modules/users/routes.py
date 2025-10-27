@@ -17,7 +17,11 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
   existing_user = db.query(User).filter(User.email == user.email).first()
   if existing_user:
-    raise HTTPException(status_code=404, detail="esiste già")
+    raise HTTPException(status_code=404, detail="l'email è già registrata usa un altra email")
+  
+  existing_user = db.query(User).filter(User.name == user.name).first()
+  if existing_user:
+    raise HTTPException(status_code=404, detail="nickname già in uso usa un altro nickname")
   
   new_user = User(**user.model_dump())
   db.add(new_user)

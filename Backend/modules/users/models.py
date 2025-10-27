@@ -8,5 +8,6 @@ class User(Base):
   id = Column(Integer, primary_key=True, index=True)
   name = Column(String, nullable=False)
   email = Column(String, nullable=False, unique=True)
+  quartiere = Column(String, nullable=False)
 
   dashboard = relationship("Dashboard", back_populates="user", uselist=False)

@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Picker } from '@react-native-picker/picker';
 
 function WelcomeScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [quartiere, setQuartiere] = useState('');
 
   const handlePress = async () => {
-    if (!name.trim() || !email.trim()) {
-      Alert.alert('Inserisci nome e email');
+    if (!name.trim() || !email.trim() || !quartiere.trim()) {
+      Alert.alert('Inserisci nome, email e quartiere');
       return;
     }
 
@@ -19,7 +21,8 @@ function WelcomeScreen({ navigation }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
-          email: email.trim()
+          email: email.trim(),
+          quartiere: quartiere.trim()
         }),
       });
 
@@ -34,6 +37,7 @@ function WelcomeScreen({ navigation }) {
       await AsyncStorage.setItem("userId", data.id.toString());
       await AsyncStorage.setItem("userName", data.name);
       await AsyncStorage.setItem("userEmail", data.email);
+      await AsyncStorage.setItem("userQuartiere", data.quartiere);
 
       navigation.replace("Main");
 
@@ -51,11 +55,11 @@ function WelcomeScreen({ navigation }) {
       style={styles.container}
     >
       <Text style={styles.title}>Benvenuto su MoveGreen!</Text>
-      <Text style={styles.text}>Inserisci nome e email per continuare</Text>
+      <Text style={styles.text}>Inserisci nickname, email e quartiere per continuare</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Nome"
+        placeholder="nickname"
         placeholderTextColor="#888"
         value={name}
         onChangeText={setName}
@@ -71,13 +75,30 @@ function WelcomeScreen({ navigation }) {
         autoCapitalize="none"
       />
 
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={quartiere}
+          onValueChange={(value) => setQuartiere(value)}
+          style={styles.picker}
+          dropdownIconColor="#e5e5e5"
+        >
+          <Picker.Item label="Seleziona quartiere" value="" />
+          <Picker.Item label="Gries-San Quirino" value="Gries-San Quirino" />
+          <Picker.Item label="Don Bosco" value="Don Bosco" />
+          <Picker.Item label="Oltrisarco-Aslago" value="Oltrisarco" />
+          <Picker.Item label="Europa Novacella" value="Europa Novacella" />
+          <Picker.Item label="Centro Piani Rencio" value="Centro Piani Rencio" />
+          
+        </Picker>
+      </View>
+
       <TouchableOpacity
         style={[
           styles.button,
-          (!name.trim() || !email.trim()) && styles.buttonDisabled
+          (!name.trim() || !email.trim() || !quartiere.trim()) && styles.buttonDisabled
         ]}
         onPress={handlePress}
-        disabled={!name.trim() || !email.trim()}
+        disabled={!name.trim() || !email.trim() || !quartiere.trim()}
         activeOpacity={0.8}
       >
         <LinearGradient
@@ -89,6 +110,7 @@ function WelcomeScreen({ navigation }) {
           <Text style={styles.buttonText}>Iniziamo</Text>
         </LinearGradient>
       </TouchableOpacity>
+
     </LinearGradient>
   );
 }
@@ -123,6 +145,20 @@ const styles = StyleSheet.create({
     color:'#e5e5e5',
     borderWidth:1,
     borderColor:'#0C8024',
+  },
+  pickerContainer: {
+    width:'80%',
+    height:50,
+    borderRadius:12,
+    marginBottom:15,
+    backgroundColor:'#2a2a2a',
+    borderWidth:1,
+    borderColor:'#0C8024',
+    justifyContent:'center'
+  },
+  picker: {
+    color:'#e5e5e5',
+    width:'100%',
   },
   button: {
     width:'80%',
