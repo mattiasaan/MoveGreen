@@ -24,3 +24,13 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
   db.commit()
   db.refresh(new_user)
   return new_user
+
+@router.delete("/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+  deleted_user = db.query(User).filter(User.id == user_id).first()
+  if not deleted_user:
+    raise HTTPException(status_code=404, detail="non esiste")
+  db.delete(deleted_user)
+  db.commit()
+  message = "cancellato con successo"
+  return message

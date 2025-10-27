@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 
 function WelcomeScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -8,29 +9,54 @@ function WelcomeScreen({ navigation }) {
 
   const handlePress = async () => {
     if (!name.trim() || !email.trim()) {
-      Alert.alert('inserire un email');
+      Alert.alert('Inserisci nome e email');
       return;
     }
 
     try {
-      await AsyncStorage.setItem('userName', name.trim());
-      await AsyncStorage.setItem('userEmail', email.trim());
+      const response = await fetch("http://192.168.1.5:8001/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim()
+        }),
+      });
 
-      navigation.replace('Main');
+      if (!response.ok) {
+        const errorData = await response.json();
+        Alert.alert("Errore", errorData.detail || "Errore nella creazione utente");
+        return;
+      }
+
+      const data = await response.json();
+
+      await AsyncStorage.setItem("userId", data.id.toString());
+      await AsyncStorage.setItem("userName", data.name);
+      await AsyncStorage.setItem("userEmail", data.email);
+
+      navigation.replace("Main");
+
     } catch (error) {
       console.log(error);
-      Alert.alert('Errore', 'Impossibile salvare i dati');
+      Alert.alert("Errore", "Impossibile collegarsi al server");
     }
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={["#0C8024", "#1d251eff","#1d251eff", "#0C8024"]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.2, y: 1 }}
+      style={styles.container}
+    >
       <Text style={styles.title}>Benvenuto su MoveGreen!</Text>
       <Text style={styles.text}>Inserisci nome e email per continuare</Text>
 
       <TextInput
         style={styles.input}
         placeholder="Nome"
+        placeholderTextColor="#888"
         value={name}
         onChangeText={setName}
       />
@@ -38,19 +64,32 @@ function WelcomeScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#888"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
       />
 
-      <Button
-        style={styles.button}
-        title="Iniziamo"
+      <TouchableOpacity
+        style={[
+          styles.button,
+          (!name.trim() || !email.trim()) && styles.buttonDisabled
+        ]}
         onPress={handlePress}
         disabled={!name.trim() || !email.trim()}
-      />
-    </View>
+        activeOpacity={0.8}
+      >
+        <LinearGradient
+          colors={["#0C8024", "#78a96e"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.buttonGradient}
+        >
+          <Text style={styles.buttonText}>Iniziamo</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </LinearGradient>
   );
 }
 
@@ -59,34 +98,55 @@ const styles = StyleSheet.create({
     flex:1,
     alignItems:'center',
     justifyContent:'center',
-    backgroundColor:'#f0f0f0',
     padding:20,
   },
   title: {
-    fontSize:24,
+    fontSize:30,
     fontWeight:'bold',
-    marginBottom:20,
-    color:'#333',
+    marginBottom:15,
+    color:'#e5e5e5',
     textAlign:'center',
   },
   text: {
     fontSize:18,
-    marginBottom:20,
-    color:'#666',
+    marginBottom:25,
+    color:'#cfcfcf',
     textAlign:'center',
   },
   input: {
     width:'80%',
     height:50,
-    borderColor:'#ccc',
-    borderWidth:1,
-    borderRadius:8,
+    borderRadius:12,
     marginBottom:15,
-    paddingHorizontal:10,
-    backgroundColor:'#fff',
+    paddingHorizontal:12,
+    backgroundColor:'#2a2a2a',
+    color:'#e5e5e5',
+    borderWidth:1,
+    borderColor:'#0C8024',
   },
   button: {
-    
+    width:'80%',
+    borderRadius:14,
+    marginTop:10,
+    elevation:5,
+    shadowColor:'#0C8024',
+    shadowOpacity:0.4,
+    shadowRadius:10,
+    shadowOffset:{ width:0, height:4 },
+    overflow:'hidden',
+  },
+  buttonGradient: {
+    paddingVertical:15,
+    alignItems:'center',
+    borderRadius:14,
+  },
+  buttonDisabled: {
+    opacity:0.5,
+  },
+  buttonText: {
+    color:'#121212',
+    fontSize:18,
+    fontWeight:'bold',
   }
 });
 

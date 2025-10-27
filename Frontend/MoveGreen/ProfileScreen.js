@@ -1,8 +1,31 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function ProfileScreen({ navigation }) {
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userId, setUserId] = useState(null);
+
+  const API_URL = "http://192.168.1.5:8001/users";
+
+  const loadUserData = async () => {
+    try {
+      const name = await AsyncStorage.getItem("userName");
+      const email = await AsyncStorage.getItem("userEmail");
+      const id = await AsyncStorage.getItem("userId");
+
+      if (name) setUserName(name);
+      if (email) setUserEmail(email);
+      if (id) setUserId(id);
+    } catch (error) {
+      console.log("Errore recupero dati:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
 
   const handleDeleteAccount = async () => {
     Alert.alert(
@@ -15,14 +38,30 @@ function ProfileScreen({ navigation }) {
           style: "destructive", 
           onPress: async () => {
             try {
-              await AsyncStorage.clear();
-              Alert.alert("Account cancellato", "Tutti i dati sono stati rimossi.");
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Welcome' }],
+              if (!userId) {
+                Alert.alert("Errore", "ID utente non trovato");
+                return;
+              }
+
+              const response = await fetch(`${API_URL}/${userId}`, {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                },
               });
+
+              if (!response.ok) {
+                Alert.alert("Errore", "Errore durante la cancellazione sul server");
+                return;
+              }
+
+              await AsyncStorage.clear();
+              Alert.alert("Account cancellato", "Tutti i dati sono stati rimossi");
+              navigation.replace("Welcome");
+
             } catch (error) {
               Alert.alert("Errore", "Impossibile cancellare i dati");
+              console.log(error);
             }
           } 
         }
@@ -39,14 +78,14 @@ function ProfileScreen({ navigation }) {
 
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>Nome</Text>
-        <Text style={styles.infoText}>Mario Rossi</Text>
+        <Text style={styles.infoText}>{userName || "Non disponibile"}</Text>
 
         <Text style={[styles.infoTitle, { marginTop: 10 }]}>Email</Text>
-        <Text style={styles.infoText}>mario.rossi@email.com</Text>
+        <Text style={styles.infoText}>{userEmail || "Non disponibile"}</Text>
       </View>
 
-      <TouchableOpacity 
-        style={styles.deleteButton} 
+      <TouchableOpacity
+        style={styles.deleteButton}
         onPress={handleDeleteAccount}
       >
         <Text style={styles.buttonText}>Cancella Account</Text>
@@ -54,6 +93,7 @@ function ProfileScreen({ navigation }) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
