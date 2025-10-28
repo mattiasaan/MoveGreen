@@ -20,6 +20,7 @@ function ProfileScreen({ navigation }) {
       if (name) setUserName(name);
       if (email) setUserEmail(email);
       if (id) setUserId(id);
+      if (quartiere) setUserQuartiere(quartiere);
     } catch (error) {
       console.log("Errore recupero dati:", error);
     }
@@ -71,6 +72,18 @@ function ProfileScreen({ navigation }) {
     );
   };
 
+  const handleDeleteAsync = async () => {
+  try {
+    await AsyncStorage.clear();
+    Alert.alert("Dati rimossi", "Hai resettato i dati locali");
+    navigation.replace("Welcome");
+  } catch (error) {
+    Alert.alert("Errore", "Impossibile cancellare i dati");
+    console.log(error);
+  }
+};
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profilo Utente</Text>
@@ -94,6 +107,13 @@ function ProfileScreen({ navigation }) {
       >
         <Text style={styles.buttonText}>Cancella Account</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={handleDeleteAsync}
+      >
+        <Text style={styles.buttonText}>Reset dati locali</Text>
+      </TouchableOpacity>
+
     </View>
   );
 }
