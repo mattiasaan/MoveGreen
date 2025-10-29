@@ -5,6 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { getDistance } from 'geolib';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MAP_HEIGHT_PERCENTAGE_INITIAL = 100;
 const MAP_HEIGHT_PERCENTAGE_TRACKING = 70;
@@ -118,6 +119,8 @@ const StatBox = ({ title, value, flex }) => (
 );
 
 export default function TrackingScreen() {
+  const [userId, setUserId] = useState(null);
+
   const insets = useSafeAreaInsets();
   const [isTracking, setIsTracking] = useState(false);
   const [activeMode, setActiveMode] = useState('biking');
@@ -140,6 +143,19 @@ export default function TrackingScreen() {
     { key: 'biking', size: 26 },
     { key: 'bus', size: 26 }
   ];
+
+  const loadUserData = async () => {
+    try {
+      const id = await AsyncStorage.getItem("userId");
+      if (id) setUserId(id);
+    } catch (error) {
+      console.log("Errore recupero dati:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
 
   const startTracking = async () => {
   const { status } = await Location.requestForegroundPermissionsAsync();
@@ -206,6 +222,7 @@ export default function TrackingScreen() {
 
   // Dati per server
   const payload = {
+    user_id: userId,
     mode: activeMode,
     distance: distance / 1000,
     time_seconds: elapsedTime,
@@ -215,7 +232,7 @@ export default function TrackingScreen() {
 
   console.log("Invio dati tracking:", payload);
 
-  fetch("", {
+  fetch("http://192.168.1.5:8001/traking/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -223,6 +240,7 @@ export default function TrackingScreen() {
     .then(res => res.json())
     .then(data => console.log("risposta", data))
     .catch(err => console.log("Errore invio", err));
+    console.log("print 2", payload);
 
   setElapsedTime(0);
   setStartTime(null);

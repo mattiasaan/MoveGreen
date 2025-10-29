@@ -99,6 +99,8 @@ function ProfileScreen({ navigation }) {
         <Text style={styles.infoText}>{userEmail || "Non disponibile"}</Text>
         <Text style={[styles.infoTitle, { marginTop: 10 }]}>Quartiere</Text>
         <Text style={styles.infoText}>{userQuartiere || "Non disponibile"}</Text>
+        <Text style={[styles.infoTitle, { marginTop: 10 }]}>Id</Text>
+        <Text style={styles.infoText}>{userId || "Non disponibile"}</Text>
       </View>
 
       <TouchableOpacity

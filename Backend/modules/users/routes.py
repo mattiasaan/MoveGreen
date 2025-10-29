@@ -4,7 +4,7 @@ from core.database import get_db
 from .models import User
 from .schemas import UserCreate, UserResponse
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter()
 
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
