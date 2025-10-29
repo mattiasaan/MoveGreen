@@ -1,11 +1,19 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react'
 import { StyleSheet, View, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import { getDistance } from 'geolib';
 
 const MAP_HEIGHT_PERCENTAGE_INITIAL = 100;
 const MAP_HEIGHT_PERCENTAGE_TRACKING = 70;
+
+const CO2_FACTORS = {
+  walking: 0.21,
+  biking: 0.25,
+  bus: 0.09
+};
 
 const html = `
 <!DOCTYPE html>
@@ -18,137 +26,90 @@ const html = `
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
   <style>
-    html, body, #map, #infoPage {
-      height: 100%;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      overflow: hidden;
-      background: white;
-      font-family: sans-serif;
-    }
-
     #map {
       position: absolute;
       top: 0;
       left: 0;
       height: 100%;
       width: 100%;
-      z-index: 1;
-    }
-
-    #infoPage {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 100%;
-      display: none;
-      background: #f7f7f7;
-      padding: 20px;
-      box-sizing: border-box;
-      z-index: 10;
-    }
-
-    #backButton {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    a {
-      color: blue;
-      cursor: pointer;
-      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <div id="infoPage">
-    <h2>🚧 Viabilità limitata</h2>
-    <p>Passaggio di mezzi pesanti in corso.</p>
-    <p>Tempo di percorrenza: <b>12 minuti</b></p>
-    <button id="backButton">← Torna alla mappa</button>
-  </div>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const tempoDiPercorrenza = 12;
-    const motivazione = "Viabilità limitata a causa del passaggio di mezzi pesanti.";
+    const map = L.map('map').setView([46.4983, 11.3548], 15);
 
-    const map = L.map('map').setView([46.4983, 11.3548], 13);
-
-    const LavoriInCorso = L.icon({
-      iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Italian_traffic_signs_-_lavori.svg/1165px-Italian_traffic_signs_-_lavori.svg.png',
-      iconSize: [45, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [3, -30]
-    });
-
-    const Traffico = L.icon({
-      iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Italian_traffic_signs_-_Coda.svg/200px-Italian_traffic_signs_-_Coda.svg.png',
-      iconSize: [40, 40],
-      iconAnchor: [18, 40],
-      popupAnchor: [3, -30]
-    });
-
-    // Aggiungi layer mappa
     L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
       subdomains: ['a','b','c'],
       maxZoom: 19
     }).addTo(map);
 
-    // Marker standard
-    L.marker([46.4983, 11.3548])
-      .addTo(map)
-      .bindPopup('Centro Bolzano');
+let userMarker = null;
+let accuracyCircle = null;
+let polyline = L.polyline([], { color: 'lime', weight: 5 }).addTo(map);
 
-    L.marker([46.48890449054672, 11.336235278195057], { icon: LavoriInCorso })
-      .addTo(map)
-      .bindPopup('Pensilina in costruzione');
+document.addEventListener("message", function(event) {
+  const data = JSON.parse(event.data);
 
-    // Marker traffico con link
-    const trafficoMarker = L.marker([46.49203205246964, 11.341416969290785], { icon: Traffico })
-      .addTo(map)
-      .bindPopup(
-        '<b>Code a tratti</b><br>' +
-        '<b>Tempo di percorrenza:</b> ' + tempoDiPercorrenza + ' minuti.<br>' +
-        '<a href="https://traffico.provincia.bz.it/#tab_map" id="causeLink"><b>Causa:</b></a> ' + motivazione
-      );
+  if(data.type === "LOCATION"){
+    const { latitude, longitude, accuracy } = data.coords;
 
-    // ✅ Quando si apre un popup, attacca il listener
-    map.on('popupopen', function(e) {
-      const causeLink = document.getElementById('causeLink');
-      if (causeLink) {
-        causeLink.addEventListener('click', function(event) {
-          event.preventDefault();
-          // Nascondi mappa e mostra pagina info
-          document.getElementById('map').style.display = 'none';
-          document.getElementById('infoPage').style.display = 'block';
-          map.closePopup();
-        });
-      }
-    });
+    // Aggiorna linea del percorso
+    polyline.addLatLng([latitude, longitude]);
 
-    // ✅ Gestione pulsante indietro
-    document.getElementById('backButton').addEventListener('click', function() {
-      document.getElementById('infoPage').style.display = 'none';
-      document.getElementById('map').style.display = 'block';
-    });
+    // Marker utente
+    if (!userMarker) {
+      userMarker = L.circleMarker([latitude, longitude], {
+        radius: 10,
+        color: 'white',
+        weight: 3,
+        fillColor: '#0078FF',
+        fillOpacity: 1
+      }).addTo(map);
+    } else {
+      userMarker.setLatLng([latitude, longitude]);
+    }
+
+    // Cerchio di accuratezza
+    if (!accuracyCircle) {
+      accuracyCircle = L.circle([latitude, longitude], {
+        radius: accuracy,
+        color: '#4DA3FF',
+        fillColor: '#4DA3FF',
+        fillOpacity: 0.15,
+        weight: 1
+      }).addTo(map);
+    } else {
+      accuracyCircle.setLatLng([latitude, longitude]);
+      accuracyCircle.setRadius(accuracy);
+    }
+
+    map.setView([latitude, longitude]);
+  }
+
+  // RESET mappa
+  if(data.type === "RESET"){
+    if(polyline) {
+      polyline.setLatLngs([]);
+    }
+    if(userMarker) {
+      map.removeLayer(userMarker);
+      userMarker = null;
+    }
+    if(accuracyCircle) {
+      map.removeLayer(accuracyCircle);
+      accuracyCircle = null;
+    }
+  }
+});
   </script>
 </body>
 </html>
 `;
-// Componente per le singole statistiche
+
 const StatBox = ({ title, value, flex }) => (
   <View style={[styles.statBox, { flex }]}>
     <Text style={styles.statTitle}>{title}</Text>
@@ -158,20 +119,129 @@ const StatBox = ({ title, value, flex }) => (
 
 export default function TrackingScreen() {
   const insets = useSafeAreaInsets();
-  const [isTracking, setIsTracking] = React.useState(false);
-  const [activeMode, setActiveMode] = React.useState('biking');
+  const [isTracking, setIsTracking] = useState(false);
+  const [activeMode, setActiveMode] = useState('biking');
 
-  const toggleTracking = () => setIsTracking(prev => !prev);
+  const [coords, setCoords] = useState([]);
+  const [distance, setDistance] = useState(0);
+  const [startTime, setStartTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  const watchRef = useRef(null);
+  const timerRef = useRef(null);
+  const webviewRef = useRef(null);
 
   const mapHeightPercentage = isTracking
     ? MAP_HEIGHT_PERCENTAGE_TRACKING
     : MAP_HEIGHT_PERCENTAGE_INITIAL;
 
   const modeOptions = [
-    { key: 'walking', size: 16 },
-    { key: 'biking', size: 20 },
-    { key: 'bus', size: 16 }
+    { key: 'walking', size: 26 },
+    { key: 'biking', size: 26 },
+    { key: 'bus', size: 26 }
   ];
+
+  const startTracking = async () => {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') {
+    alert('Permesso posizione richiesto!');
+    return;
+  }
+
+  setIsTracking(true);
+  setCoords([]);
+  setDistance(0);
+
+  const initialTime = Date.now();
+  setStartTime(initialTime);
+  setElapsedTime(0);
+
+  if (timerRef.current) clearInterval(timerRef.current);
+
+  timerRef.current = setInterval(() => {
+    setElapsedTime(Math.floor((Date.now() - initialTime) / 1000));
+  }, 1000);
+
+  watchRef.current = await Location.watchPositionAsync(
+    {
+      accuracy: Location.Accuracy.Highest,
+      distanceInterval: 5,
+    },
+    (loc) => {
+      setCoords((prev) => {
+        if (prev.length > 0) {
+          const newDist = getDistance(prev[prev.length - 1], loc.coords);
+          setDistance((d) => d + newDist);
+        }
+
+        webviewRef.current?.postMessage(
+          JSON.stringify({
+            type: 'LOCATION',
+            coords: loc.coords,
+          })
+        );
+
+        return [...prev, loc.coords];
+      });
+    }
+  );
+};
+
+
+  const stopTracking = () => {
+  setIsTracking(false);
+
+  if (watchRef.current) {
+    watchRef.current.remove();
+    watchRef.current = null;
+  }
+
+  if (timerRef.current) {
+    clearInterval(timerRef.current);
+    timerRef.current = null;
+  }
+
+  // reset mappa
+  webviewRef.current?.postMessage(JSON.stringify({ type: "RESET" }));
+
+  // Dati per server
+  const payload = {
+    mode: activeMode,
+    distance: distance / 1000,
+    time_seconds: elapsedTime,
+    co2_saved: parseFloat(((distance / 1000) * CO2_FACTORS[activeMode]).toFixed(2)),
+    timestamp: new Date().toISOString()
+  };
+
+  console.log("Invio dati tracking:", payload);
+
+  fetch("", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => console.log("risposta", data))
+    .catch(err => console.log("Errore invio", err));
+
+  setElapsedTime(0);
+  setStartTime(null);
+  setDistance(0);
+  setCoords([]);
+};
+
+
+
+
+  const co2Saved = ((distance / 1000) * CO2_FACTORS[activeMode]).toFixed(2);
+
+  const formatTime = (sec) => {
+  const h = Math.floor(sec / 3600).toString().padStart(2, '0');
+  const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+  const s = Math.floor(sec % 60).toString().padStart(2, '0');
+  return `${h}:${m}:${s}`;
+};
+
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -179,10 +249,10 @@ export default function TrackingScreen() {
 
       <SafeAreaView style={styles.contentWrapper} edges={['left', 'right']}>
 
-        {/* mappa */}
-        <View style={[styles.mapWebViewContainer, { height: `${mapHeightPercentage}%` }]}>
+        <View style={[styles.mapWebViewContainer, { height: mapHeightPercentage + '%' }]}>
           
           <WebView
+            ref={webviewRef}
             originWhitelist={['*']}
             source={{ html }}
             style={styles.webview}
@@ -191,12 +261,6 @@ export default function TrackingScreen() {
             scrollEnabled={false}
           />
 
-          {/* per localizzazione (in futuro) */}
-          <TouchableOpacity style={styles.targetIcon}>
-            <FontAwesome5 name="crosshairs" size={18} color="#FFF" />
-          </TouchableOpacity>
-
-          {/* ui iniziale */}
           {!isTracking && (
             <View style={styles.bottomUIOverlay}>
 
@@ -214,8 +278,7 @@ export default function TrackingScreen() {
                 ))}
               </View>
 
-              {/* start traking */}
-              <TouchableOpacity style={styles.startButton} onPress={toggleTracking}>
+              <TouchableOpacity style={styles.startButton} onPress={startTracking}>
                 <Text style={styles.stopButtonText}>Inizia a registrare</Text>
               </TouchableOpacity>
             </View>
@@ -228,17 +291,17 @@ export default function TrackingScreen() {
           <View style={styles.statsContainer}>
             
             <View style={styles.statsRow}>
-              <StatBox title="Tempo" value="00:24:15" flex={1} />
+              <StatBox title="Tempo" value={formatTime(elapsedTime)} flex={1} />
               <View style={{ width: 8 }} />
-              <StatBox title="Distanza" value="1.2 km" flex={1} />
+              <StatBox title="Distanza" value={(distance / 1000).toFixed(2) + ' km'} flex={1} />
             </View>
 
             <View style={styles.statsRow}>
-              <StatBox title="CO₂ risparmiata" value="0.1 kg" flex={2} />
+              <StatBox title="CO₂ risparmiata" value={co2Saved + ' kg'} flex={2} />
             </View>
 
-            <TouchableOpacity style={styles.stopButton} onPress={toggleTracking}>
-              <Text style={styles.stopButtonText}>☐ Ferma</Text>
+            <TouchableOpacity style={styles.stopButton} onPress={stopTracking}>
+              <Text style={styles.stopButtonText}>Ferma</Text>
             </TouchableOpacity>
 
           </View>
@@ -283,7 +346,6 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 15,
     paddingBottom: 25,
-    zIndex: 2,
     backgroundColor: 'rgba(18, 18, 18, 0.85)',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -348,7 +410,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E1E1E',
     borderRadius: 10,
     padding: 12,
-    justifyContent: 'space-between',
     minHeight: 70,
   },
   statTitle: {
