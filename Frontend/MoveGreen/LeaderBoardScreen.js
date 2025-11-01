@@ -1,10 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LeaderBoardScreen() {
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [quartiere, setQuartiere] = useState(""); // per filtro
+  const [userName, setUserName] = useState('');
+  const [userQuartiere, setUserQuartiere] = useState('');
+
+  const loadUserData = async () => {
+    try {
+      const name = await AsyncStorage.getItem("userName");
+      const quartiere = await AsyncStorage.getItem("userQuartiere");
+
+      if (name) setUserName(name);
+      if (quartiere) setUserQuartiere(quartiere);
+    } catch (error) {
+      console.log("Errore recupero dati:", error);
+    }
+  }
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      let url = 'http://192.168.1.5:8001/leaderboard';
+      if (quartiere) {
+        url += `?quartiere=${encodeURIComponent(quartiere)}`;
+      }
+      const response = await fetch(url);
+      const data = await response.json();
+      setLeaderboardData(data);
+    } catch (error) {
+      console.error("Errore nel fetch leaderboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [quartiere]);
+
+  const currentUser = leaderboardData.find(item => item.name === userName);
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       
@@ -13,8 +58,8 @@ export default function LeaderBoardScreen() {
         {/* Filtro */}
         <View style={styles.pickerContainer}>
           <Picker
-            //selectedValue={quartiere}
-            //onValueChange={(value) => setQuartiere(value)}
+            selectedValue={quartiere}
+            onValueChange={(value) => setQuartiere(value)}
             style={styles.picker}
             dropdownIconColor="#e5e5e5"
           >
@@ -29,164 +74,56 @@ export default function LeaderBoardScreen() {
         </View>
 
         {/* Highlight Primo Classificato */}
-        <View style={styles.highlightContainer}>
-          <FontAwesome5 name="crown" size={40} color="#15D32F" />
-          <Text style={styles.highlightName}>mattiasan</Text>
-          <Text style={styles.highlightPt}>4000pt</Text>
-        </View>
+        {!loading && leaderboardData.length > 0 && (
+          <View style={styles.highlightContainer}>
+            <FontAwesome5 name="crown" size={40} color="#15D32F" />
+            <Text style={styles.highlightName}>{leaderboardData[0].name}</Text>
+            <Text style={styles.highlightPt}>{leaderboardData[0].total_points} pt</Text>
+          </View>
+        )}
 
         {/* Lista Classifica */}
         <View style={styles.listContainer}>
-          {leaderboardData.map((item, index) => (
-            <View key={index} style={styles.rowCard}>
-              <Text style={styles.position}>{item.pos}</Text>
-              <View style={styles.infoContainer}>
-                <Text style={styles.username}>{item.name}</Text>
-                <Text style={styles.quartiere}>{item.quartiere}</Text>
-              </View>
-              <View style={styles.dataContainer}>
-                <Text style={styles.pt}>{item.points} pt</Text>
-                <Text style={styles.co2}>{item.savedKg} kg</Text>
-              </View>
-            </View>
-          ))}
+          {loading ? (
+              <Text style={{ color: '#FFFFFF' }}>Caricamento...</Text>
+            ) : (
+              leaderboardData.map((item, index) => (
+                <View key={index} style={styles.rowCard}>
+                  <Text style={styles.position}>{index + 1}</Text>
+                  <View style={styles.infoContainer}>
+                    <Text style={styles.username}>{item.name}</Text>
+                    <Text style={styles.quartiere}>{item.quartiere}</Text>
+                  </View>
+                  <View style={styles.dataContainer}>
+                    <Text style={styles.pt}>{item.total_points} pt</Text>
+                  </View>
+                </View>
+              ))
+            )}
         </View>
 
         {/* Padding extra per la riga sticky */}
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Riga fissa utente in basso */}
-      <View style={styles.userFixedRow}>
-        <Text style={styles.position}>56</Text>
-        <View style={styles.infoContainer}>
-          <Text style={styles.username}>Tu</Text>
-          <Text style={styles.quartiere}>gries</Text>
+      {!loading && (
+        <View style={styles.userFixedRow}>
+          <Text style={styles.position}>
+            {currentUser ? leaderboardData.indexOf(currentUser) + 1 : "-"}
+          </Text>
+          <View style={styles.infoContainer}>
+            <Text style={styles.username}>{userName}</Text>
+            <Text style={styles.quartiere}>{currentUser ? currentUser.quartiere : userQuartiere}</Text>
+          </View>
+          <View style={styles.dataContainer}>
+            <Text style={styles.pt}>{currentUser ? currentUser.total_points : 0} pt</Text>
+          </View>
         </View>
-        <View style={styles.dataContainer}>
-          <Text style={styles.pt}>980 pt</Text>
-          <Text style={styles.co2}>84 kg</Text>
-        </View>
-      </View>
+      )}
 
     </SafeAreaView>
   );
 }
-
-const leaderboardData = [
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-    {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-  {
-    pos: 3,
-    name: "t",
-    quartiere: "t",
-    points: 2150,
-    savedKg: 179
-  },
-];
 
 const styles = StyleSheet.create({
   safe: {

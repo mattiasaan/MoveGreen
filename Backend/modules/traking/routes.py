@@ -8,7 +8,16 @@ from modules.dashboard.models import Dashboard
 router = APIRouter()
 
 def calcola_punti(activity: TrakingCreate) -> int:
-  return int(activity.distance * 0.1)
+  if activity.mode == "biking":
+    multiplier = 1.8
+  elif activity.mode == "walking":
+    multiplier = 1.5
+  elif activity.mode == "bus":
+    multiplier = 1.2
+  else:
+    multiplier = 1
+  points = int(((activity.co2_saved + activity.distance) * multiplier) / (0.7 * 810))
+  return points
 
 @router.post("/", response_model=TrakingResponse)
 def create_activity(activity: TrakingCreate, db: Session = Depends(get_db)):
