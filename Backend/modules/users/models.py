@@ -11,3 +11,5 @@ class User(Base):
   quartiere = Column(String, nullable=False)
 
   dashboard = relationship("Dashboard", back_populates="user", uselist=False)
+
+  trakings = relationship("Traking",back_populates="user",cascade="all, delete-orphan")

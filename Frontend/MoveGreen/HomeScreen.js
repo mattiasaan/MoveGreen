@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Platform, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen({ navigation}) {
-  const userId = 1;
-
   const [userName, setUserName] = useState('');
+  const [userId, setUserId] = useState(null);
+
+  const [refreshing, setRefreshing] = useState(false);
 
   const [data, setData] = useState({
     km_sostenibili: '---',
@@ -13,24 +14,58 @@ export default function HomeScreen({ navigation}) {
     punti_totali: '---',
   });
 
-  useEffect(() => {
-    loadUserName();
-    fetchData();
-  }, []);
+  const [activityData, setActivityData] = useState([])
 
-
-  const loadUserName = async () => {
-    try {
-      const storedName = await AsyncStorage.getItem('userName');
-      if (storedName) setUserName(storedName);
-    } catch (error) {
-      console.log('Errore AsyncStorage:', error);
-    }
+  //refresh dati pagina
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      fetchDataDashboard(userId),
+      fetchDataActivity(userId)
+    ]);
+    setRefreshing(false);
   };
 
-  const fetchData = async () => {
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        const storedId = await AsyncStorage.getItem("userId");
+        const storedName = await AsyncStorage.getItem("userName");
+
+        if (storedId) setUserId(Number(storedId));
+        if (storedName) setUserName(storedName);
+      } catch (error) {
+        console.log("Errore caricando dati utente:", error);
+      }
+    };
+
+    initialize();
+  }, []);
+
+  // quando id cambia carica dati
+  useEffect(() => {
+    if (userId !== null) {
+      fetchDataDashboard(userId);
+      fetchDataActivity(userId);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId === null) return;
+
+    const interval = setInterval(() => {
+      console.log("Aggiornamento automatico dati...");
+      fetchDataDashboard(userId);
+      fetchDataActivity(userId);
+    }, 60000); // ogni 60 sec
+
+    return () => clearInterval(interval);
+  }, [userId]);
+
+
+  const fetchDataDashboard = async (uid) => {
     try {
-      const res = await fetch(`http://192.168.1.5:8001/dashboard/${userId}`);
+      const res = await fetch(`http://192.168.1.5:8001/dashboard/${uid}`);
       const json = await res.json();
 
       setData({
@@ -38,26 +73,56 @@ export default function HomeScreen({ navigation}) {
         co2_risparmiata: json.total_co2_saved ?? '---',
         punti_totali: json.total_points ?? '---',
       });
-
     } catch (error) {
-      console.log("Errore nel fetch:", error);
+      console.log("Errore fetch dashboard:", error);
     }
   };
 
-  const renderAction = (title, points, date) => (
-  <View style={styles.actionCard}>
-    <Text style={styles.actionTitle}>{title}</Text>
-    <Text style={styles.actionSubtitle}>{points}</Text>
-    <Text style={styles.actionTime}>{date}</Text>
-  </View>
-);
+  const fetchDataActivity = async (uid) => {
+    try {
+      const res = await fetch(`http://192.168.1.5:8001/traking/user/activity/${uid}`);
+      const json = await res.json();
+
+      setActivityData(Array.isArray(json) ? json : []);
+    } catch (error) {
+      console.log("Errore fetch activity:", error);
+      setActivityData([]);
+    }
+  };
+
+  const formatDate = (ts) => {
+    if (!ts) return '';
+    try {
+      const d = new Date(ts);
+      if (isNaN(d)) return ts;
+      // data semplificata
+      return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
+    } catch {
+      return ts;
+    }
+  };
+
+  const renderAction = (title, data, date, key) => (
+    <View key={key} style={styles.actionCard}>
+      <View style={styles.actionRow}>
+        <View style={styles.actionLeft}>
+          <Text style={styles.actionTitle}>{title}</Text>
+          <Text style={styles.actionSubtitle}>{data}</Text>
+        </View>
+        <View style={styles.actionRight}>
+          <Text style={styles.actionTime}>{date}</Text>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <>
-      {/* StatusBar bianca su tema scuro */}
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#15D32F" />
+      }>
         <Text style={styles.title}>Ciao {userName}</Text>
 
         <View style={styles.row}>
@@ -79,9 +144,18 @@ export default function HomeScreen({ navigation}) {
 
         <Text style={styles.sectionTitle}>Ultime registrazioni</Text>
 
-        {renderAction("Corsa - 5 km", "25 GreenPoints", "10:30 AM")}
-        {renderAction("Bici - 10 km", "50 GreenPoints", "Ieri")}
-        {renderAction("creazione account", "100 GreenPoints", "2 giorni fa")}
+        {activityData.length === 0 ? (
+          renderAction("Nessuna attività", "Registra la tua prima attività", "", "empty-1")
+        ) : (
+          activityData.slice(0, 3).map((act, idx) =>
+            renderAction(
+              `${act.mode ?? 'Attività'}`,
+              `${act.distance ?? '—'} km  •  ${act.co2_saved ?? '—'} kg CO₂`,
+              formatDate(act.timestamp),
+              `act-${idx}`
+            )
+          )
+        )}
 
         <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.navigate('Tracking')}>
           <Text style={styles.primaryButtonText}>Registra attività</Text>
@@ -166,6 +240,19 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  actionLeft: {
+    paddingRight: 8,
+    flex: 1,
+  },
+  actionRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   actionTitle: {
     color: '#FFFFFF',
