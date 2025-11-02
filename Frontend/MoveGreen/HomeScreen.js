@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function HomeScreen({ navigation}) {
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState(null);
+  const [rank, setRank] = useState(null);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -47,6 +48,7 @@ export default function HomeScreen({ navigation}) {
     if (userId !== null) {
       fetchDataDashboard(userId);
       fetchDataActivity(userId);
+      fetchRank(userId);
     }
   }, [userId]);
 
@@ -57,11 +59,24 @@ export default function HomeScreen({ navigation}) {
       console.log("Aggiornamento automatico dati...");
       fetchDataDashboard(userId);
       fetchDataActivity(userId);
+      fetchRank(userId);
     }, 60000); // ogni 60 sec
 
     return () => clearInterval(interval);
   }, [userId]);
 
+
+  const fetchRank = async (uid) => {
+    try {
+      const res = await fetch(`http://192.168.1.5:8001/leaderboard/position/${uid}`);
+      if (!res.ok) throw new Error('Errore fetch rank');
+      const data = await res.json();
+      setRank(data.rank);
+    } catch (err) {
+      console.log('Errore fetch rank:', err);
+      setRank(null);
+    }
+  };
 
   const fetchDataDashboard = async (uid) => {
     try {
@@ -168,9 +183,28 @@ export default function HomeScreen({ navigation}) {
         <Text style={styles.sectionTitle}>La tua Posizione in Classifica</Text>
 
         <View style={styles.rankBox}>
-          <Text style={styles.rankSmall}>Sei quasi nella Top 100!</Text>
-          <Text style={styles.rankValue}>#125</Text>
-          <Text style={styles.rankLink}>Vedi Classifica Completa</Text>
+          <Text style={styles.rankSmall}>
+            {rank == null
+              ? 'Caricamento...'
+              : rank <= 3
+              ? 'Sei nella Top 3!'
+              : rank <= 10
+              ? 'Sei nella Top 10!'
+              : rank <= 20
+              ? 'Sei nella Top 20!'
+              : rank <= 50
+              ? 'Sei nella Top 50!'
+              : rank <= 75
+              ? 'Sei nella Top 75!'
+              : rank <= 100
+              ? 'Sei nella Top 100!'
+              : 'Sei quasi nella Top 100!'}
+          </Text>
+
+          <Text style={styles.rankValue}>#{rank ?? '—'}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('LeaderBoard')}>
+            <Text style={styles.rankLink}>Vedi Classifica Completa</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.sectionTitle}>Sfide attive</Text>
