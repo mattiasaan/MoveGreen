@@ -59,6 +59,8 @@ function ProfileScreen({ navigation }) {
               }
 
               await AsyncStorage.clear();
+              await AsyncStorage.removeItem("hasLaunched");
+              
               Alert.alert("Account cancellato", "Tutti i dati sono stati rimossi");
               navigation.replace("Welcome");
 

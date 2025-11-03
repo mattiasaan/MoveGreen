@@ -206,7 +206,7 @@ export default function HomeScreen({ navigation}) {
             <Text style={styles.rankLink}>Vedi Classifica Completa</Text>
           </TouchableOpacity>
         </View>
-
+        {/*
         <Text style={styles.sectionTitle}>Sfide attive</Text>
 
         <View style={styles.challengeBox}>
@@ -217,6 +217,7 @@ export default function HomeScreen({ navigation}) {
             <View style={[styles.progressFill, { width: "67%" }]} />
           </View>
         </View>
+        */}
       </ScrollView>
     </>
   );

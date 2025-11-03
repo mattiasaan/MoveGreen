@@ -59,11 +59,16 @@ export default function App() {
   useEffect(() => {
     async function checkFirstLaunch() {
       try {
-        const userName = await AsyncStorage.getItem('userName');
-        setIsFirstLaunch(!userName);
+        const hasLaunched = await AsyncStorage.getItem('hasLaunched');
+        if (hasLaunched === null) {
+          await AsyncStorage.setItem('hasLaunched', 'true');
+          setIsFirstLaunch(true);
+        } else {
+          setIsFirstLaunch(false);
+        }
       } catch (error) {
-        console.log(error);
-        setIsFirstLaunch(true);
+        console.log('Errore checkFirstLaunch:', error);
+        setIsFirstLaunch(false);
       }
     }
     checkFirstLaunch();
@@ -78,10 +83,11 @@ export default function App() {
       <StatusBar barStyle="light-content" backgroundColor="#000" />
 
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {isFirstLaunch && (
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          )}
+        <Stack.Navigator
+          screenOptions={{ headerShown: false }}
+          initialRouteName={isFirstLaunch ? "Welcome" : "Main"}
+        >
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
         </Stack.Navigator>
       </NavigationContainer>
