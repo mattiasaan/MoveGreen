@@ -52,6 +52,8 @@ let userMarker = null;
 let accuracyCircle = null;
 let polyline = L.polyline([], { color: 'lime', weight: 5 }).addTo(map);
 
+let markersLayer = L.layerGroup().addTo(map);
+
 document.addEventListener("message", function(event) {
   const data = JSON.parse(event.data);
 
@@ -105,6 +107,26 @@ document.addEventListener("message", function(event) {
       accuracyCircle = null;
     }
   }
+
+  // Mostra marker
+  if (data.type === "MARKERS" && Array.isArray(data.markers)) {
+    markersLayer.clearLayers();
+    data.markers.forEach((m) => {
+      const iconColor =
+        m.category === "traffico" ? "red" :
+        m.category === "strada_chiusa" ? "orange" :
+        "blue";
+        
+      const marker = L.circleMarker([m.lat, m.lon], {
+        radius: 8,
+        color: iconColor,
+        fillColor: iconColor,
+        fillOpacity: 0.8
+      })
+        .bindPopup('<b>' + m.title + '</b><br>' + m.description)
+        .addTo(markersLayer);
+    });
+  }
 });
   </script>
 </body>
@@ -155,6 +177,28 @@ export default function TrackingScreen() {
 
   useEffect(() => {
     loadUserData();
+  }, []);
+
+  const fetchMarkers = async () => {
+    try {
+      const res = await fetch("http://192.168.1.5:8001/report/");
+      const data = await res.json();
+
+      webviewRef.current?.postMessage(
+        JSON.stringify({
+          type: "MARKERS",
+          markers: data
+        })
+      );
+    } catch (err) {
+      console.log("Errore fetch markers:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMarkers(); // prima chiamata
+    const interval = setInterval(fetchMarkers, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const startTracking = async () => {
@@ -277,6 +321,7 @@ export default function TrackingScreen() {
             javaScriptEnabled
             domStorageEnabled
             scrollEnabled={false}
+            onLoadEnd={() => {fetchMarkers()}}
           />
 
           {!isTracking && (
