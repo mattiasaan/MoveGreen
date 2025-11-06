@@ -112,10 +112,10 @@ function ProfileScreen({ navigation }) {
         <Text style={styles.buttonText}>Cancella Account</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.deleteButton}
+        style={styles.logOutButton}
         onPress={handleDeleteAsync}
       >
-        <Text style={styles.buttonText}>Reset dati locali</Text>
+        <Text style={styles.buttonText}>Esci</Text>
       </TouchableOpacity>
 
     </View>
@@ -156,10 +156,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   deleteButton: {
+    backgroundColor: '#e20e0eff',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: '18'
+  },
+  logOutButton: {
     backgroundColor: '#0C8024',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
+    marginBottom: '18'
   },
   buttonText: {
     color: '#FFFFFF',
