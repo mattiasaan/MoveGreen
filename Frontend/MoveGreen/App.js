@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 import WelcomeScreen from './WelcomeScreen';
 import HomeScreen from './HomeScreen';
@@ -33,22 +34,63 @@ function MainTabs() {
       <Tab.Screen
         name="HomeTab"
         component={HomeScreen}
-        options={{ title: 'Dashboard', tabBarLabel: 'Home' }}
+        options={{
+          title: 'Dashboard',
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? 'home' : 'home-outline'}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
       />
       <Tab.Screen
         name="Tracking"
         component={TrackingScreen}
-        options={{ title: 'Traccia Attività', tabBarLabel: 'Tracking' }}
+        options={{
+          title: 'Traccia Attività',
+          tabBarLabel: 'Tracking',
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? 'walk' : 'walk-outline'}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
       />
       <Tab.Screen
         name="LeaderBoard"
         component={LeaderBoardScreen}
-        options={{ title: 'Classifica', tabBarLabel: 'Classifica' }}
+        options={{
+          title: 'Classifica',
+          tabBarLabel: 'Classifica',
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? 'trophy' : 'trophy-outline'}
+              size={size}
+              color={color}
+            />
+          ),
+        
+        }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: 'Profilo', tabBarLabel: 'Profilo' }}
+        options={{
+          title: 'Profilo',
+          tabBarLabel: 'Profilo',
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
