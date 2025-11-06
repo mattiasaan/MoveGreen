@@ -5,6 +5,7 @@ class ReportCreate(BaseModel):
   title: str
   description: str
   category: str
+  type: str
   lat: float
   lon: float
 
@@ -14,6 +15,7 @@ class ReportResponse(BaseModel):
   title: str
   description: str
   category: str
+  type: str
   lat: float
   lon: float
 

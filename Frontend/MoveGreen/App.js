@@ -11,6 +11,7 @@ import HomeScreen from './HomeScreen';
 import TrackingScreen from './TrackingScreen';
 import LeaderBoardScreen from './LeaderBoardScreen';
 import ProfileScreen from './ProfileScreen';
+import ReportScreen from './ReportScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -89,6 +90,7 @@ export default function App() {
         >
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="Report" component={ReportScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

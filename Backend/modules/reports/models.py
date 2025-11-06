@@ -10,5 +10,6 @@ class Report(Base):
   title = Column(String, nullable=False)
   description = Column(String, nullable=False)
   category = Column(String, nullable=False)
+  types = Column(String, nullable=False)
   lat = Column(Float, nullable=False)
   lon = Column(Float, nullable=False)

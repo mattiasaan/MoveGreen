@@ -181,7 +181,7 @@ export default function TrackingScreen() {
 
   const fetchMarkers = async () => {
     try {
-      const res = await fetch("http://192.168.1.5:8001/report/");
+      const res = await fetch("http://192.168.1.16:8001/report/");
       const data = await res.json();
 
       webviewRef.current?.postMessage(
@@ -276,7 +276,7 @@ export default function TrackingScreen() {
 
   console.log("Invio dati tracking:", payload);
 
-  fetch("http://192.168.1.5:8001/traking/", {
+  fetch("http://192.168.1.16:8001/traking/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
