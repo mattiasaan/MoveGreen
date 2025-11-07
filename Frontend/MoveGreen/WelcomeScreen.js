@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
+import { API_URL } from "./config";
 
 function WelcomeScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -16,7 +17,7 @@ function WelcomeScreen({ navigation }) {
     }
 
     try {
-      const response = await fetch("http://192.168.1.5:8001/users", {
+      const response = await fetch(`${API_URL}/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

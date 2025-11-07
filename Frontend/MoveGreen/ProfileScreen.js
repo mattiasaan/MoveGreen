@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from "./config"
 
 function ProfileScreen({ navigation }) {
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userQuartiere, setUserQuartiere] = useState('');
   const [userId, setUserId] = useState(null);
-
-  const API_URL = "http://192.168.1.5:8001/users";
 
   const loadUserData = async () => {
     try {
@@ -46,7 +45,7 @@ function ProfileScreen({ navigation }) {
                 return;
               }
 
-              const response = await fetch(`${API_URL}/${userId}`, {
+              const response = await fetch(`${API_URL}/users/${userId}`, {
                 method: "DELETE",
                 headers: {
                   "Content-Type": "application/json",

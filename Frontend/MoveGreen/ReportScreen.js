@@ -20,6 +20,7 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from "./config"
 
 const { height } = Dimensions.get("window");
 
@@ -293,7 +294,7 @@ export default function ReportScreen() {
   console.log(payload)
 
   try {
-    const response = await fetch("http://192.168.1.5:8001/report/", {
+    const response = await fetch(`${API_URL}/report/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

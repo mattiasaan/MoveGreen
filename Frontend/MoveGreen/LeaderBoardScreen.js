@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from "./config"
 
 export default function LeaderBoardScreen() {
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -30,7 +31,7 @@ export default function LeaderBoardScreen() {
 
   const fetchLeaderboard = async () => {
     try {
-      let url = 'http://192.168.1.5:8001/leaderboard';
+      let url = `${API_URL}/leaderboard`;
       if (quartiere) {
         url += `?quartiere=${encodeURIComponent(quartiere)}`;
       }

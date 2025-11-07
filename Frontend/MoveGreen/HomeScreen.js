@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Platform, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from "./config"
 
 export default function HomeScreen({ navigation}) {
   const [userName, setUserName] = useState('');
@@ -68,7 +69,7 @@ export default function HomeScreen({ navigation}) {
 
   const fetchRank = async (uid) => {
     try {
-      const res = await fetch(`http://192.168.1.5:8001/leaderboard/position/${uid}`);
+      const res = await fetch(`${API_URL}/leaderboard/position/${uid}`);
       if (!res.ok) throw new Error('Errore fetch rank');
       const data = await res.json();
       setRank(data.rank);
@@ -80,7 +81,7 @@ export default function HomeScreen({ navigation}) {
 
   const fetchDataDashboard = async (uid) => {
     try {
-      const res = await fetch(`http://192.168.1.5:8001/dashboard/${uid}`);
+      const res = await fetch(`${API_URL}/dashboard/${uid}`);
       const json = await res.json();
 
       setData({
@@ -95,7 +96,7 @@ export default function HomeScreen({ navigation}) {
 
   const fetchDataActivity = async (uid) => {
     try {
-      const res = await fetch(`http://192.168.1.5:8001/traking/user/activity/${uid}`);
+      const res = await fetch(`${API_URL}/traking/user/activity/${uid}`);
       const json = await res.json();
 
       setActivityData(Array.isArray(json) ? json : []);

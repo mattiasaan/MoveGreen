@@ -5,6 +5,8 @@ node_modules/
 
 __pycache__
 
+reset_db.py
+
 # Expo
 .expo/
 dist/

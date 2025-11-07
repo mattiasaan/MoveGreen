@@ -7,6 +7,7 @@ import * as Location from 'expo-location';
 import { getDistance } from 'geolib';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { API_URL } from "./config"
 
 
 const MAP_HEIGHT_PERCENTAGE_INITIAL = 100;
@@ -203,7 +204,7 @@ export default function TrackingScreen() {
 
   const fetchMarkers = async () => {
     try {
-      const res = await fetch("http://192.168.1.5:8001/report/");
+      const res = await fetch(`${API_URL}/report/`);
       const data = await res.json();
 
       webviewRef.current?.postMessage(
@@ -304,7 +305,7 @@ export default function TrackingScreen() {
 
   console.log("Invio dati tracking:", payload);
 
-  fetch("http://192.168.1.5:8001/traking/", {
+  fetch(`${API_URL}/traking/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
