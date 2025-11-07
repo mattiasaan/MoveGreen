@@ -78,8 +78,9 @@ export default function ReportScreen() {
   const types = [
     { key: "traffico", icon: "car", color: "red", label: "Traffico" },
     { key: "strada_chiusa", icon: "road", color: "orange", label: "Strada chiusa" },
-    { key: "incidenti", icon: "exclamation-triangle", color: "yellow", label: "Incidente" },
+    { key: "incidente", icon: "exclamation-triangle", color: "yellow", label: "Incidente" },
     { key: "lavori", icon: "tools", color: "#15D32F", label: "Lavori" },
+    { key: "altro", icon: "info-circle", color: "#15D32F", label: "Altro" },
   ];
 
   const categories = [
@@ -292,7 +293,7 @@ export default function ReportScreen() {
   console.log(payload)
 
   try {
-    const response = await fetch("http://192.168.1.16:8001/report/", {
+    const response = await fetch("http://192.168.1.5:8001/report/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

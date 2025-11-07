@@ -7,3 +7,4 @@ expo install expo-linear-gradient
 npm install @react-native-picker/picker
 expo install expo-location
 expo install geolib
+npm install react-native-keyboard-aware-scroll-view

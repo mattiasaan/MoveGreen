@@ -8,7 +8,7 @@ function ProfileScreen({ navigation }) {
   const [userQuartiere, setUserQuartiere] = useState('');
   const [userId, setUserId] = useState(null);
 
-  const API_URL = "http://192.168.1.16:8001/users";
+  const API_URL = "http://192.168.1.5:8001/users";
 
   const loadUserData = async () => {
     try {

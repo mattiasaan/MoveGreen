@@ -16,7 +16,7 @@ function WelcomeScreen({ navigation }) {
     }
 
     try {
-      const response = await fetch("http://192.168.1.16:8001/users", {
+      const response = await fetch("http://192.168.1.5:8001/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,1 +1,5 @@
-pip install fastapi SQLAlchemy uvicorn
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+python-dotenv
