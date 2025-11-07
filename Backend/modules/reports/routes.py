@@ -18,3 +18,14 @@ def create_report(report: ReportCreate, db: Session= Depends(get_db)):
   db.commit()
   db.refresh(new_report)
   return new_report
+
+@router.post("/bulk/")
+def create_reports_bulk(reports: List[ReportCreate], db: Session = Depends(get_db)):
+  if not reports:
+    raise HTTPException(status_code=400, detail="Lista di report vuota")
+
+  db_reports = [Report(**r.model_dump()) for r in reports]
+  db.add_all(db_reports)
+  db.commit()
+
+  return {"inserted": len(db_reports)}
