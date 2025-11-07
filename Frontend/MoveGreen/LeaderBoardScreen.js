@@ -30,7 +30,7 @@ export default function LeaderBoardScreen() {
 
   const fetchLeaderboard = async () => {
     try {
-      let url = 'http://192.168.1.5:8001/leaderboard';
+      let url = 'http://192.168.1.16:8001/leaderboard';
       if (quartiere) {
         url += `?quartiere=${encodeURIComponent(quartiere)}`;
       }
