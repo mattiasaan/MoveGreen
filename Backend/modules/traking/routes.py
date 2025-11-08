@@ -16,7 +16,7 @@ def calcola_punti(activity: TrakingCreate) -> int:
     multiplier = 1.2
   else:
     multiplier = 1
-  points = ceil((((activity.co2_saved + activity.distance) * multiplier) / (0.7 * 810)) * 10)
+  points = ceil((((activity.co2_saved + activity.distance) * multiplier) / (0.7 * 810)) * 100)
   return points
 
 @router.post("/", response_model=TrakingResponse)
