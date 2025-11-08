@@ -86,7 +86,7 @@ export default function HomeScreen({ navigation}) {
 
       setData({
         km_sostenibili: json.total_distance_km ?? '---',
-        co2_risparmiata: json.total_co2_saved ?? '---',
+        co2_risparmiata: json.total_co2_saved != null ? Number(json.total_co2_saved).toFixed(1) : '---',
         punti_totali: json.total_points ?? '---',
       });
     } catch (error) {
@@ -116,6 +116,11 @@ export default function HomeScreen({ navigation}) {
     } catch {
       return ts;
     }
+  };
+
+  const formatDistance = (distance) => {
+    if (distance == null) return '—';
+    return Number(distance).toFixed(0);
   };
 
   const renderAction = (title, data, date, key) => (
@@ -166,7 +171,7 @@ export default function HomeScreen({ navigation}) {
           activityData.slice(0, 3).map((act, idx) =>
             renderAction(
               `${act.mode ?? 'Attività'}`,
-              `${act.distance ?? '—'} km  •  ${act.co2_saved ?? '—'} kg CO₂`,
+              `${formatDistance(act.distance)} km  •  ${act.co2_saved.toFixed(2)} kg CO₂`,
               formatDate(act.timestamp),
               `act-${idx}`
             )

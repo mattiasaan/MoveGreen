@@ -4,7 +4,7 @@ from core.database import get_db
 from .models import Traking
 from .schemas import TrakingCreate, TrakingResponse
 from modules.dashboard.models import Dashboard
-
+from math import ceil
 router = APIRouter()
 
 def calcola_punti(activity: TrakingCreate) -> int:
@@ -16,7 +16,7 @@ def calcola_punti(activity: TrakingCreate) -> int:
     multiplier = 1.2
   else:
     multiplier = 1
-  points = int(((activity.co2_saved + activity.distance) * multiplier) / (0.7 * 810))
+  points = ceil((((activity.co2_saved + activity.distance) * multiplier) / (0.7 * 810)) * 10)
   return points
 
 @router.post("/", response_model=TrakingResponse)

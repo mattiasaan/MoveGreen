@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class TrakingCreate(BaseModel):
   user_id: int
   mode: str
-  distance: int
+  distance: float
   time_seconds: float
   co2_saved: float
   timestamp: str
@@ -12,7 +12,7 @@ class TrakingResponse(BaseModel):
   activity_id: int
   user_id: int
   mode: str
-  distance: int
+  distance: float
   time_seconds: float
   co2_saved: float
   timestamp: str
