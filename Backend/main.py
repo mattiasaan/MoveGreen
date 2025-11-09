@@ -8,6 +8,8 @@ from modules.reports import routes as report_routes
 
 from core.database import engine
 
+from fastapi.responses import PlainTextResponse
+
 #python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001
 
 Base.metadata.create_all(bind=engine)
@@ -15,6 +17,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 @app.get("/")
+@app.head("/")
 def root():
   return {"message": "root"}
 
