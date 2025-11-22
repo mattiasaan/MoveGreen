@@ -5,6 +5,8 @@ node_modules/
 
 __pycache__
 
+.vscode
+
 reset_db.py
 
 # Expo
