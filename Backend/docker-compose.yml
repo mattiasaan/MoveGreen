@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   backend:
-    build: ./Backend
+    build: .
     container_name: movegreen_backend
     ports:
       - "8001:8001"
@@ -11,7 +9,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ./Backend:/app
+      - .:/app
     command: ["./wait-for-db.sh", "db", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
 
   db:
@@ -22,7 +20,6 @@ services:
       - .env
     volumes:
       - pgdata:/var/lib/postgresql/data
-    
 
 volumes:
   pgdata:
